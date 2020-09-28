@@ -1,13 +1,13 @@
 global class B2BCartToQuote {
    @InvocableMethod
-   public static List<String> getCartItems(List<String> cartID) {   //0a64V000000kA1lQAE   Lauren Bailey's Active Cart
+   public static List<String> getCartItems(List<String> cartID) {
      
-      //Get Account ID and Owner (User) from WebCart which is the Cart Header
+      //Get Account ID and Owner (User) from WebCart (Cart Header)
       //Get list of Products from cartItems
-      List<WebCart> WebCart = [SELECT AccountID, OwnerID, Quote__c FROM WebCart WHERE ID in :cartID];
+      List<WebCart> WebCart = [SELECT ID, AccountID, OwnerID FROM WebCart WHERE ID in :cartID];
       List<CartItem> cartItems = [SELECT Product2Id FROM CartItem WHERE CartID in :cartID];
       
-      //Create an Opportunity
+      //Create Opportunity
       Opportunity opp = new Opportunity(CloseDate = Date.today(), AccountId = Webcart[0].AccountID, StageName = 'Qualification', Name = 'Subscription Opportunity');
       Database.insert(opp);
 
@@ -21,14 +21,13 @@ global class B2BCartToQuote {
       Database.insert(q);
       ID quoteId = q.Id;  
        
-       
-      //WebCart wc = new WebCart();
-      //wc.ID = cartid;
-      //wc.Quote__c = q.Id;
-      //Database.upsert(WebCart);
+      // Update WebCart with Quote ID
+      WebCart wc = new WebCart();
+      wc.ID = WebCart[0].ID;
+      wc.Quote__c = q.Id;
+      Database.upsert(wc);
       
-     
-
+   
       //Create Quote Lines by looping through Cart Items
       for (CartItem currentCartItem : cartItems) {
       	SBQQ__QuoteLine__c ql = new SBQQ__QuoteLine__c();
@@ -37,9 +36,6 @@ global class B2BCartToQuote {
       	Database.insert(ql);
       	System.debug('****** Debug :   ' + currentCartItem.ID);
     }     
-
-
-       
       return null;
 
    }
