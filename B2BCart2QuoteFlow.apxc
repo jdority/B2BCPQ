@@ -1,0 +1,66 @@
+//Flow
+
+global class B2BCartToQuoteFlow {
+    @InvocableMethod
+    public static List<String> getCartItems(List<String> cartID) {
+	
+        List<String> quote_required = new List<String>();
+
+        //Get list of Products from cartItems
+        List<CartItem> cartItems = [SELECT Product2Id FROM CartItem WHERE CartID in :cartID];
+        
+        //Create list  of Subscription Products
+        List<ProductAttribute> pas = 
+            [SELECT productid FROM productattribute where subscription_Term__c <> null]; 
+        
+        //Loop through cart to determine if a subscription item is in the Cart
+        for (CartItem currentCartItem : cartItems) {  
+            for (ProductAttribute currentPAS : pas) {
+                if (currentPAS.productid == currentCartItem.Product2ID)  {
+                    quote_required.add('true');
+                    break;
+                }
+            }
+        }
+        
+        //If Quote is required, create Oppty and Quote
+        if(quote_required.size() > 0){
+
+            //Get Account ID and Owner (User) from WebCart (Cart Header)
+            List<WebCart> WebCart = [SELECT ID, AccountID, OwnerID FROM WebCart WHERE ID in :cartID];
+            
+            //Create Opportunity
+            Opportunity opp = new Opportunity(CloseDate = Date.today(), AccountId = Webcart[0].AccountID, StageName = 'Qualification', Name = 'Subscription Opportunity');
+            Database.insert(opp);
+            
+            //Create Quote Header
+            Id oppId = opp.Id;
+            SBQQ__Quote__c q = new SBQQ__Quote__c(SBQQ__Primary__c = true, SBQQ__Account__c = Webcart[0].AccountID, SBQQ__SubscriptionTerm__c = 12, SBQQ__Opportunity2__c = oppId, SBQQ__Status__c = 'Draft', SBQQ__Type__c = 'Quote'); 
+            List<Contact> ContactList = [SELECT Id FROM Contact WHERE AccountId = :Webcart[0].AccountID LIMIT 1];
+            if (ContactList.size() > 0) {
+                q.SBQQ__PrimaryContact__c = ContactList.get(0).Id;
+            }
+            Database.insert(q);
+            ID quoteId = q.Id;  
+            
+            // Update WebCart with Quote ID
+            WebCart wc = new WebCart();
+            wc.ID = WebCart[0].ID;
+            wc.Quote__c = q.Id;
+            Database.upsert(wc);
+            
+            //Create Quote Lines by looping through Cart Items
+            for (CartItem currentCartItem : cartItems) {
+                SBQQ__QuoteLine__c ql = new SBQQ__QuoteLine__c();
+                ql.SBQQ__Quote__c = quoteID;
+                ql.SBQQ__Product__c = currentCartItem.Product2ID;
+                Database.insert(ql);
+                System.debug('****** Debug :   ' + currentCartItem.ID);
+            }    
+        }       
+        return quote_required;   // 
+    }
+  }
+    
+//SELECT productClass FROM Product2 where ProductClass = 'Variation'
+//insert into SBQQ__QuoteLine__c (SBQQ__Quote__c, SBQQ__Product__c) values ('a0l4V0000059UOtQAM', '01t4V000007sI75QAE')
