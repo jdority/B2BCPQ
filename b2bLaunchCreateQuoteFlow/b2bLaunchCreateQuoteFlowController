@@ -1,0 +1,59 @@
+({
+    init: function(component, event, helper) {
+        console.log('inside init');
+
+        //var recordId = component.get("v.pageReference").state.cartId;
+        var cartId = helper.getUrlParameter('cartId');
+        console.log("cartId: " + cartId);
+
+        component.set("v.recordId", cartId);
+
+        var flow = component.find("flowData");
+
+        console.log('recordId: ' + component.get('v.recordId'));
+
+        console.log('flowApiName: ' + component.get('v.flowApiName'));
+
+        var inputVariables = [
+            {
+                name : 'recordId',
+                type: 'String',
+                value: component.get('v.recordId')
+            }
+        ];
+
+        flow.startFlow(component.get("v.flowApiName"), inputVariables);
+    },
+    openModal : function(component) {
+
+        console.log('inside openModal');
+
+        var flow = component.find("flowData");
+
+        console.log('recordId: ' + component.get('v.recordId'));
+
+        console.log('flowApiName: ' + component.get('v.flowApiName'));
+
+        var inputVariables = [
+            {
+                name : 'recordId',
+                type: 'String',
+                value: component.get('v.recordId')
+            }
+        ];
+
+        flow.startFlow(component.get("v.flowApiName"), inputVariables);
+
+    },
+    // Dialog
+    closeModel: function(component, event, helper) {
+        // for Hide/Close Model,set the "isOpen" attribute to "False"
+        component.set("v.isOpen", false);
+    },
+    statusChange : function (cmp, event) {
+        if(event.getParam('status') === 'FINISHED') {
+            cmp.set("v.isOpen", false);
+        }
+    }
+
+})
