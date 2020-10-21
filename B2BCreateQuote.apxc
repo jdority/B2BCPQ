@@ -27,6 +27,7 @@ public class B2BCreateQuote {
         if (ContactList.size() > 0) {
             q.SBQQ__PrimaryContact__c = ContactList.get(0).Id;
         }
+        SBQQ.TriggerControl.disable();
         Database.insert(q);
            
         List<B2BQuote> listOfQuotes = new List<B2BQuote>{};
@@ -42,7 +43,7 @@ public class B2BCreateQuote {
             ql.SBQQ__Quote__c = q.id;
             Database.insert(ql);       
         }     
-        
+        SBQQ.TriggerControl.enable();
         System.debug('****** Debug :   ' + listOfQuotes[0]);
         return listOfQuotes[0];
     }
