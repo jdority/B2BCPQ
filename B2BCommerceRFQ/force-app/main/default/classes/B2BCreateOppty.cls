@@ -14,13 +14,14 @@ global class B2BCreateOppty {
         List<CartItem> cartItems = [SELECT Product2Id, Quantity, TotalPrice FROM CartItem WHERE CartID = :cartID];
         
         //Create Opportunity
-        //Pricebook2Id: HARDCODE Cirrus Silver Price Book SDO Requirement?
-        Opportunity opp = new Opportunity(CloseDate = date.valueOf('2022-12-31'), AccountId = Webcart[0].AccountID, StageName = 'Qualification', Name = 'Subscription Opportunity',Pricebook2Id = '01s4W000004shKjQAI');
+        //Pricebook2Id: HARDCODE Standard Price Book
+        Opportunity opp = new Opportunity(CloseDate = date.valueOf('2022-12-31'), AccountId = Webcart[0].AccountID, StageName = 'Qualification', Name = 'Subscription Opportunity',Pricebook2Id = '01s4W000004shKfQAI');
         
+        //SBQQ.TriggerControl.disable();
         Database.insert(opp);
         
         List<B2BOppty> listOfOpptys = new List<B2BOppty>{};
-        B2BOppty a = new B2BOppty();
+		B2BOppty a = new B2BOppty();
         a.cool_opptyID = opp.id;
         listOfOpptys.add(a);
         
@@ -34,7 +35,7 @@ global class B2BCreateOppty {
             
             Database.insert(ol);        
         }   
-        
+        //SBQQ.TriggerControl.enable();
         System.debug('****** Debug :   ' + listOfOpptys[0]);
         return listOfOpptys[0];
     }
