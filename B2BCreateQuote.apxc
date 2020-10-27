@@ -40,6 +40,7 @@ public class B2BCreateQuote {
             SBQQ__QuoteLine__c ql = new SBQQ__QuoteLine__c();
             ql.SBQQ__Product__c = currentOpportunityLineItem.Product2ID;
             ql.SBQQ__Quantity__c = currentOpportunityLineItem.Quantity;
+            ql.SBQQ__SubscriptionPricing__c = 'Fixed Price';
             ql.SBQQ__Quote__c = q.id;
             Database.insert(ql);       
         }     
