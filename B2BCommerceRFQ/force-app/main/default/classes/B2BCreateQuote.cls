@@ -43,6 +43,8 @@ public class B2BCreateQuote {
             ql.SBQQ__Quantity__c = currentOpportunityLineItem.Quantity;
             ql.SBQQ__SubscriptionPricing__c = 'Fixed Price';
             ql.SBQQ__Quote__c = q.id;
+            ql.SBQQ__SubscriptionTerm__c = q.SBQQ__SubscriptionTerm__c;
+            ql.SBQQ__DefaultSubscriptionTerm__c = q.SBQQ__SubscriptionTerm__c;
             Database.insert(ql);       
         }     
         SBQQ.TriggerControl.enable();
