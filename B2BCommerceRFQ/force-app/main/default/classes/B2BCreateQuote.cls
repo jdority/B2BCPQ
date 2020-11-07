@@ -21,7 +21,7 @@ public class B2BCreateQuote {
                                               SBQQ__Status__c = 'In Review', 
                                               SBQQ__Type__c = 'Quote', 
                                               SBQQ__Notes__c = 'eCommerce Request',
-                                              SBQQ__PriceBook__c = '01s4W000004shKjQAI');
+                                              SBQQ__PriceBook__c = '01s4W000004shKfQAI');
         
         List<Contact> ContactList = [SELECT Id FROM Contact WHERE AccountId = :Oppty[0].AccountID LIMIT 1];
         if (ContactList.size() > 0) {
@@ -36,6 +36,8 @@ public class B2BCreateQuote {
         a.cool_quoteID = q.id;
         listOfQuotes.add(a);
         
+        
+        
         //Create Quote Lines by looping through Opportunity Product Lines
         for (OpportunityLineItem currentOpportunityLineItem : OpptyLIs) {
             SBQQ__QuoteLine__c ql = new SBQQ__QuoteLine__c();
@@ -45,9 +47,44 @@ public class B2BCreateQuote {
             ql.SBQQ__Quote__c = q.id;
             ql.SBQQ__SubscriptionTerm__c = q.SBQQ__SubscriptionTerm__c;
             ql.SBQQ__DefaultSubscriptionTerm__c = q.SBQQ__SubscriptionTerm__c;
-            Database.insert(ql);       
+            ql.SBQQ__ChargeType__c = 'Recurring';
+            ql.SBQQ__BillingType__c = 'Advance';
+            ql.SBQQ__BillingFrequency__c = 'Monthly';
+                   
+            //Retrieve PriceBook Entry for STANDARD PRICE BOOK for the Product
+            List<PricebookEntry> pbe = 
+                	[SELECT Id, UnitPrice FROM PricebookEntry 
+                      WHERE Pricebook2Id = '01s4W000004shKfQAI' AND Product2Id = :currentOpportunityLineItem.Product2ID];
+            
+            ql.SBQQ__PricebookEntryId__c = pbe[0].id;
+            ql.SBQQ__NetPrice__c = pbe[0].UnitPrice;
+            
+
+            Database.insert(ql);  
+            
+            //Update the Opportunity Product Line with the Quote Line ID
+            currentOpportunityLineItem.SBQQ__QuoteLine__c = ql.id;
+            Database.upsert(currentOpportunityLineItem);
+            
         }     
+    
         SBQQ.TriggerControl.enable();
+
+        //*** Still needs testing ***
+        //The Calculate Quote API calculates the prices of a CPQ quote.
+		//Use Read or Add Products APIs to obtain a QuoteModel	
+        QuoteReader reader = new QuoteReader();
+        QuoteModel quoteModel = reader.read(q.id);
+       
+        QuoteCalculator calculator = new QuoteCalculator();
+        calculator.calculate(quoteModel, 'MyCallback');
+
+        QuoteSaver saver = new QuoteSaver();
+        QuoteModel savedQuote = saver.save(quoteModel);
+        System.debug(savedQuote);
+
+        System.debug(quoteModel);
+
         System.debug('****** Debug :   ' + listOfQuotes[0]);
         return listOfQuotes[0];
     }
@@ -56,3 +93,5 @@ public class B2BCreateQuote {
 //https://help.salesforce.com/articleView?id=cpq_triggers_community.htm&type=0
 //https://help.salesforce.com/articleView?id=000352041&language=en_US&mode=1&type=1
 //https://katiekodes.com/flow-apex-defined-data-types/
+//https://developer.salesforce.com/docs/atlas.en-us.cpq_dev_api.meta/cpq_dev_api/cpq_quote_api_calculate_final.htm
+//https://developer.salesforce.com/docs/atlas.en-us.cpq_dev_api.meta/cpq_dev_api/cpq_api_quote_model_9.htm
