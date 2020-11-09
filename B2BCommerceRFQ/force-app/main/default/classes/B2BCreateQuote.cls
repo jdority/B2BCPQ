@@ -28,21 +28,22 @@ public class B2BCreateQuote {
             q.SBQQ__PrimaryContact__c = ContactList.get(0).Id;
         }
         
+        //Disable CPQ Triggers for Quote Insert 
         SBQQ.TriggerControl.disable();
         Database.insert(q);
-           
+
         List<B2BQuote> listOfQuotes = new List<B2BQuote>{};
 		B2BQuote a = new B2BQuote();
         a.cool_quoteID = q.id;
         listOfQuotes.add(a);
         
-        
-        
-        //Create Quote Lines by looping through Opportunity Product Lines
+        //Create **Quote Lines by looping through Opportunity Product Lines
         for (OpportunityLineItem currentOpportunityLineItem : OpptyLIs) {
             SBQQ__QuoteLine__c ql = new SBQQ__QuoteLine__c();
             ql.SBQQ__Product__c = currentOpportunityLineItem.Product2ID;
             ql.SBQQ__Quantity__c = currentOpportunityLineItem.Quantity;
+            ql.SBQQ__Number__c = currentOpportunityLineItem.Quantity;
+            ql.SBQQ__ProrateMultiplier__c = currentOpportunityLineItem.Quantity;
             ql.SBQQ__SubscriptionPricing__c = 'Fixed Price';
             ql.SBQQ__Quote__c = q.id;
             ql.SBQQ__SubscriptionTerm__c = q.SBQQ__SubscriptionTerm__c;
@@ -50,6 +51,9 @@ public class B2BCreateQuote {
             ql.SBQQ__ChargeType__c = 'Recurring';
             ql.SBQQ__BillingType__c = 'Advance';
             ql.SBQQ__BillingFrequency__c = 'Monthly';
+            ql.SBQQ__SubscriptionBase__c ='List';
+            ql.SBQQ__ProductSubscriptionType__c = 'Renewable';
+            ql.SBQQ__SubscriptionType__c = 'Renewable';
                    
             //Retrieve PriceBook Entry for STANDARD PRICE BOOK for the Product
             List<PricebookEntry> pbe = 
@@ -58,33 +62,25 @@ public class B2BCreateQuote {
             
             ql.SBQQ__PricebookEntryId__c = pbe[0].id;
             ql.SBQQ__NetPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__CustomerPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__ListPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__OriginalPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__PartnerPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__ProratedListPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__ProratedPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__RegularPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__SpecialPrice__c = pbe[0].UnitPrice;
             
-
             Database.insert(ql);  
             
             //Update the Opportunity Product Line with the Quote Line ID
             currentOpportunityLineItem.SBQQ__QuoteLine__c = ql.id;
             Database.upsert(currentOpportunityLineItem);
             
-        }     
-    
-        SBQQ.TriggerControl.enable();
-
-        //*** Still needs testing ***
-        //The Calculate Quote API calculates the prices of a CPQ quote.
-		//Use Read or Add Products APIs to obtain a QuoteModel	
-        QuoteReader reader = new QuoteReader();
-        QuoteModel quoteModel = reader.read(q.id);
-       
-        QuoteCalculator calculator = new QuoteCalculator();
-        calculator.calculate(quoteModel, 'MyCallback');
-
-        QuoteSaver saver = new QuoteSaver();
-        QuoteModel savedQuote = saver.save(quoteModel);
-        System.debug(savedQuote);
-
-        System.debug(quoteModel);
-
+        }  
+        	//Re-enable CPQ Triggers
+            SBQQ.TriggerControl.enable();
+     
         System.debug('****** Debug :   ' + listOfQuotes[0]);
         return listOfQuotes[0];
     }
