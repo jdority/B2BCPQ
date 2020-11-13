@@ -12,6 +12,9 @@ public class B2BCreateQuote {
         List<Opportunity> Oppty = [SELECT ID, AccountID FROM Opportunity WHERE ID = :opptyID];
         List<OpportunityLineItem> OpptyLIs = [SELECT Product2Id, Quantity, TotalPrice FROM OpportunityLineItem WHERE OpportunityId = :opptyID];
         
+        //Get Standard Price Book ID
+        List<Pricebook2> pb = [SELECT ID from Pricebook2 WHERE Name ='Standard Price Book'];
+        
         //Create Quote
         //Pricebook2Id: HARDCODE Standard PriceBook
         SBQQ__Quote__c q = new SBQQ__Quote__c(SBQQ__Primary__c = true, 
@@ -21,7 +24,7 @@ public class B2BCreateQuote {
                                               SBQQ__Status__c = 'In Review', 
                                               SBQQ__Type__c = 'Quote', 
                                               SBQQ__Notes__c = 'eCommerce Request',
-                                              SBQQ__PriceBook__c = '01s4W000004shKfQAI');
+                                              SBQQ__PriceBook__c = pb[0].ID);
         
         List<Contact> ContactList = [SELECT Id FROM Contact WHERE AccountId = :Oppty[0].AccountID LIMIT 1];
         if (ContactList.size() > 0) {
@@ -58,7 +61,7 @@ public class B2BCreateQuote {
             //Retrieve PriceBook Entry for STANDARD PRICE BOOK for the Product
             List<PricebookEntry> pbe = 
                 	[SELECT Id, UnitPrice FROM PricebookEntry 
-                      WHERE Pricebook2Id = '01s4W000004shKfQAI' AND Product2Id = :currentOpportunityLineItem.Product2ID];
+                      WHERE Pricebook2Id = :pb[0].ID AND Product2Id = :currentOpportunityLineItem.Product2ID];
             
             ql.SBQQ__PricebookEntryId__c = pbe[0].id;
             ql.SBQQ__NetPrice__c = pbe[0].UnitPrice;

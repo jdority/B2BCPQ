@@ -13,9 +13,17 @@ global class B2BCreateOppty {
         List<WebCart> WebCart = [SELECT ID, AccountID, OwnerID FROM WebCart WHERE ID = :cartID];
         List<CartItem> cartItems = [SELECT Product2Id, Quantity, TotalPrice FROM CartItem WHERE CartID = :cartID];
         
+        //Get Standard Price Book ID
+        List<Pricebook2> pb = [SELECT ID from Pricebook2 WHERE Name ='Standard Price Book'];
+        
         //Create Opportunity
         //Pricebook2Id: HARDCODE Standard Price Book
-        Opportunity opp = new Opportunity(CloseDate = date.valueOf('2022-12-31'), AccountId = Webcart[0].AccountID, StageName = 'Qualification', Name = 'Subscription Opportunity',Pricebook2Id = '01s4W000004shKfQAI');
+        Opportunity opp = new Opportunity(CloseDate = date.valueOf('2022-12-31'), 
+                                          AccountId = Webcart[0].AccountID, 
+                                          StageName = 'Qualification', 
+                                          Name = 'Subscription Opportunity',
+                                          Pricebook2Id = pb[0].ID,
+                                          SBQQ__QuotePricebookId__c = pb[0].ID);
         
         //SBQQ.TriggerControl.disable();
         Database.insert(opp);
