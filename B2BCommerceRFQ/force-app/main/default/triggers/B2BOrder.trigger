@@ -10,5 +10,9 @@ trigger B2BOrder on Order (before insert) {
         if (String.isEmpty(o.Pricebook2Id)) {
             o.Pricebook2Id = p[0].ID;
         }
+        if (o.EndDate == null) {
+			o.EndDate = o.EffectiveDate;  // may not be right for subscription products           
+        }
+
     }   
 }
