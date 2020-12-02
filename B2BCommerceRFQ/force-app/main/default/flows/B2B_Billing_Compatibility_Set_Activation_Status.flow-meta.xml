@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <assignments>
+        <name>Active_Order_Product_Line</name>
+        <label>Active Order Product Line</label>
+        <locationX>561</locationX>
+        <locationY>480</locationY>
+        <assignmentItems>
+            <assignToReference>$Record.SBQQ__Activated__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <booleanValue>true</booleanValue>
+            </value>
+        </assignmentItems>
+        <assignmentItems>
+            <assignToReference>$Record.SBQQ__Status__c</assignToReference>
+            <operator>Assign</operator>
+            <value>
+                <stringValue>Activated</stringValue>
+            </value>
+        </assignmentItems>
+    </assignments>
+    <decisions>
+        <name>Order_Header_Active</name>
+        <label>Order Header Active</label>
+        <locationX>339</locationX>
+        <locationY>433</locationY>
+        <defaultConnectorLabel>Default Outcome</defaultConnectorLabel>
+        <rules>
+            <name>Is_Order_Header_Active</name>
+            <conditionLogic>and</conditionLogic>
+            <conditions>
+                <leftValueReference>Order_Header.Status</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Draft</stringValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.SBQQ__Activated__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <booleanValue>false</booleanValue>
+                </rightValue>
+            </conditions>
+            <conditions>
+                <leftValueReference>$Record.SBQQ__Status__c</leftValueReference>
+                <operator>EqualTo</operator>
+                <rightValue>
+                    <stringValue>Draft</stringValue>
+                </rightValue>
+            </conditions>
+            <connector>
+                <targetReference>Active_Order_Product_Line</targetReference>
+            </connector>
+            <label>Is Order Header Active</label>
+        </rules>
+    </decisions>
+    <description>After an Order Product is update, set Activation status for Billing Compatibility Demo</description>
+    <interviewLabel>B2B Billing Compatibility Set Activation Status {!$Flow.CurrentDateTime}</interviewLabel>
+    <label>B2B Billing Compatibility Set Activation Status</label>
+    <processMetadataValues>
+        <name>BuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>CanvasMode</name>
+        <value>
+            <stringValue>FREE_FORM_CANVAS</stringValue>
+        </value>
+    </processMetadataValues>
+    <processMetadataValues>
+        <name>OriginBuilderType</name>
+        <value>
+            <stringValue>LightningFlowBuilder</stringValue>
+        </value>
+    </processMetadataValues>
+    <processType>AutoLaunchedFlow</processType>
+    <recordLookups>
+        <name>Order_Header</name>
+        <label>Order Header</label>
+        <locationX>176</locationX>
+        <locationY>372</locationY>
+        <assignNullValuesIfNoRecordsFound>false</assignNullValuesIfNoRecordsFound>
+        <connector>
+            <targetReference>Order_Header_Active</targetReference>
+        </connector>
+        <filters>
+            <field>Id</field>
+            <operator>EqualTo</operator>
+            <value>
+                <elementReference>$Record.OrderId</elementReference>
+            </value>
+        </filters>
+        <object>Order</object>
+    </recordLookups>
+    <startElementReference>Order_Header</startElementReference>
+    <status>Active</status>
+</Flow>
