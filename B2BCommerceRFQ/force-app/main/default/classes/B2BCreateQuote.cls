@@ -10,7 +10,7 @@ public class B2BCreateQuote {
         //Get ID and AccountID from Opportunity
         //Get list of Products from Opportunity Product
         List<Opportunity> Oppty = [SELECT ID, AccountID FROM Opportunity WHERE ID = :opptyID];
-        List<OpportunityLineItem> OpptyLIs = [SELECT Product2Id, Quantity, TotalPrice FROM OpportunityLineItem WHERE OpportunityId = :opptyID];
+        List<OpportunityLineItem> OpptyLIs = [SELECT Product2Id, Quantity, TotalPrice, UnitPrice FROM OpportunityLineItem WHERE OpportunityId = :opptyID];
         
         //Get Standard Price Book ID
         List<Pricebook2> pb = [SELECT ID from Pricebook2 WHERE Name ='Standard Price Book'];
@@ -59,20 +59,21 @@ public class B2BCreateQuote {
             ql.SBQQ__SubscriptionType__c = 'Renewable';
                    
             //Retrieve PriceBook Entry for STANDARD PRICE BOOK for the Product
+         
             List<PricebookEntry> pbe = 
                 	[SELECT Id, UnitPrice FROM PricebookEntry 
                       WHERE Pricebook2Id = :pb[0].ID AND Product2Id = :currentOpportunityLineItem.Product2ID];
             
             ql.SBQQ__PricebookEntryId__c = pbe[0].id;
-            ql.SBQQ__NetPrice__c = pbe[0].UnitPrice;
-            ql.SBQQ__CustomerPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__NetPrice__c = currentOpportunityLineItem.UnitPrice;
+            ql.SBQQ__CustomerPrice__c = currentOpportunityLineItem.UnitPrice;
             ql.SBQQ__ListPrice__c = pbe[0].UnitPrice;
             ql.SBQQ__OriginalPrice__c = pbe[0].UnitPrice;
             ql.SBQQ__PartnerPrice__c = pbe[0].UnitPrice;
             ql.SBQQ__ProratedListPrice__c = pbe[0].UnitPrice;
             ql.SBQQ__ProratedPrice__c = pbe[0].UnitPrice;
             ql.SBQQ__RegularPrice__c = pbe[0].UnitPrice;
-            ql.SBQQ__SpecialPrice__c = pbe[0].UnitPrice;
+            ql.SBQQ__SpecialPrice__c = currentOpportunityLineItem.UnitPrice;
             
             Database.insert(ql);  
             
